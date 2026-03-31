@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AttendTrack — Auto</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">
+        <div class="logo-box">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#60a5fa"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+            />
+          </svg>
+        </div>
+        <h1>AttendTrack</h1>
+      </div>
+      <div class="hbadge hb-idle" id="hBadge">● IDLE</div>
+    </div>
+
+    <div class="nav">
+      <button class="nav-btn active" onclick="switchView('Home', this)">
+        Home
+      </button>
+      <button class="nav-btn" onclick="switchView('History', this)">
+        History
+      </button>
+      <button class="nav-btn" onclick="switchView('Setup', this)">Setup</button>
+    </div>
+
+    <!-- HOME -->
+    <div id="viewHome" class="view active">
+      <div class="clock-block">
+        <div class="live-clock" id="liveClock">--:--:--</div>
+        <div class="live-date" id="liveDate">—</div>
+      </div>
+
+      <div id="alertHome" style="display: none" class="alert"></div>
+
+      <div class="status-card">
+        <div class="radar-wrap">
+          <div class="radar-outer ro-idle" id="radarOuter"></div>
+          <div class="radar-pulse" id="radarPulse"></div>
+          <div class="radar-inner">
+            <div class="ri-icon" id="radarIcon">◌</div>
+            <div class="ri-dist" id="radarDist">—</div>
+          </div>
+        </div>
+
+        <div class="status-lbl sl-idle" id="sLabel">Idle</div>
+        <div class="status-desc" id="sDesc">
+          Enable monitoring below to start auto tracking
+        </div>
+
+        <div class="time-row">
+          <div class="time-cell">
+            <div class="tc-lbl">Check In</div>
+            <div class="tc-val tcv-e" id="ciVal">--:--</div>
+          </div>
+          <div class="time-cell">
+            <div class="tc-lbl">Check Out</div>
+            <div class="tc-val tcv-e" id="coVal">--:--</div>
+          </div>
+          <div class="time-cell">
+            <div class="tc-lbl">Duration</div>
+            <div class="tc-val tcv-e" id="durVal">--:--</div>
+          </div>
+        </div>
+
+        <div class="grace-wrap" id="graceWrap">
+          <div class="grace-hdr">
+            <span>⏳ Left office — checking out soon</span>
+            <span id="graceCountdown">—</span>
+          </div>
+          <div class="grace-bg">
+            <div class="grace-fill" id="graceFill" style="width: 100%"></div>
+          </div>
+        </div>
+
+        <div class="loc-strip">
+          <div class="ldot ld-gray" id="locDot"></div>
+          <div class="loc-txt" id="locTxt">Waiting for GPS signal…</div>
+          <div id="distBadge"></div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleMonitor()">
+          <div class="tr-left">
+            <div class="tr-icon">📡</div>
+            <div>
+              <div class="tr-title" id="toggleTitle">Auto Monitoring</div>
+              <div class="tr-sub" id="toggleSub">
+                Tap to enable location tracking
+              </div>
+            </div>
+          </div>
+          <div class="pill" id="togglePill"><div class="thumb"></div></div>
+        </div>
+      </div>
+
+      <div id="officeWarn" class="warn-box" style="display: none">
+        ⚠ &nbsp;No office location set — go to <strong>Setup</strong> tab to
+        configure first.
+      </div>
+
+      <div class="evt-log" id="evtLog" style="display: none">
+        <div class="evt-head">Today's Activity</div>
+        <div id="evtList"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="viewHistory" class="view">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" style="color: var(--green)" id="stP">—</div>
+          <div class="stat-lbl">Present</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color: var(--blue)" id="stD">—</div>
+          <div class="stat-lbl">This Month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color: var(--amber)" id="stH">—</div>
+          <div class="stat-lbl">Total Hrs</div>
+        </div>
+      </div>
+      <div class="sec-head">Attendance Log</div>
+      <div id="histList"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="viewSetup" class="view">
+      <div class="sec-head">Office Location</div>
+      <p
+        style="
+          font-size: 12px;
+          color: var(--muted);
+          margin-bottom: 14px;
+          line-height: 1.6;
+        "
+      >
+        Set your office GPS. The app auto checks you in when you enter the zone
+        and out when you leave.
+      </p>
+
+      <button class="btn btn-ghost" onclick="useCurrentGPS()">
+        ◎ &nbsp;Use My Current GPS as Office
+      </button>
+
+      <div class="divider"></div>
+
+      <div class="frow">
+        <div class="form-grp">
+          <label class="flabel">Latitude</label
+          ><input
+            class="finput"
+            type="number"
+            id="inLat"
+            placeholder="23.2599"
+            step="any"
+          />
+        </div>
+        <div class="form-grp">
+          <label class="flabel">Longitude</label
+          ><input
+            class="finput"
+            type="number"
+            id="inLng"
+            placeholder="77.4126"
+            step="any"
+          />
+        </div>
+      </div>
+      <div class="frow">
+        <div class="form-grp">
+          <label class="flabel">Radius (meters)</label
+          ><input
+            class="finput"
+            type="number"
+            id="inRadius"
+            placeholder="200"
+            value="200"
+          />
+        </div>
+        <div class="form-grp">
+          <label class="flabel">Office Name</label
+          ><input
+            class="finput"
+            type="text"
+            id="inName"
+            placeholder="My Office"
+          />
+        </div>
+      </div>
+
+      <div class="grace-card">
+        <div class="grace-title">Check-Out Grace Period</div>
+        <div class="grace-sub">
+          Wait this long after leaving the zone before auto check-out. Prevents
+          false triggers from GPS drift.
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="10"
+          value="3"
+          step="1"
+          id="graceSlider"
+          oninput="updateGraceLabel()"
+        />
+        <div class="grace-val" id="graceLabel">3 minutes</div>
+      </div>
+
+      <button class="btn btn-blue" onclick="saveOffice()">
+        ✓ &nbsp;Save Configuration
+      </button>
+      <div id="alertSetup" style="display: none" class="alert"></div>
+
+      <div id="curOfficeSec" style="display: none">
+        <div class="divider"></div>
+        <div class="sec-head">Saved Office</div>
+        <div class="cur-office">
+          <div class="ldot ld-green"></div>
+          <div class="co-txt" id="curOfficeTxt"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
